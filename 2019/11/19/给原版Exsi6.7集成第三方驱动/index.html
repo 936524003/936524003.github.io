@@ -2,9 +2,9 @@
 <html>
 <head><meta name="generator" content="Hexo 3.9.0">
   <meta charset="utf-8">
-  <title>Bevis&#39;s Blog</title>
-  <meta name="keywords" content>
-  <meta name="description" content="Bevis&#39;s Blog">
+  <title>给原版ESXi6.7集成第三方驱动 | Bevis&#39;s Blog</title>
+  <meta name="keywords" content=" ESXi ">
+  <meta name="description" content="给原版ESXi6.7集成第三方驱动 | Bevis&#39;s Blog">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <meta name="description" content="Abouting…">
 <meta name="keywords" content="Bevis&#39;s Blog;博客;">
@@ -246,17 +246,31 @@
 </aside>
 <div class="post">
     <div class="pjax">
-        <article id="page-" class="article article-type-page" itemscope itemprop="blogPost">
+        <article id="post-给原版Exsi6.7集成第三方驱动" class="article article-type-post" itemscope itemprop="blogPost">
+    
+        <h1 class="article-title">给原版ESXi6.7集成第三方驱动</h1>
     
     <div class="article-meta">
         
         
         
+        <span class="book">
+            
+                <a href="javascript:" data-rel="虚拟化">虚拟化</a>
+            
+        </span>
+        
+        
+        <span class="tag">
+            
+            <a href="javascript:" class="color5">ESXi</a>
+            
+        </span>
         
     </div>
     <div class="article-meta">
         
-        创建时间:<time class="date" title='更新时间: 2019-07-29 04:58:01'>2019-07-29 04:58</time>
+        创建时间:<time class="date" title='更新时间: 2019-11-18 09:57:25'>2019-11-18 17:08</time>
         
     </div>
     <div class="article-meta">
@@ -278,7 +292,7 @@
     
     <div class="toc-ref">
     
-        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#About"><span class="toc-text">About</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#ing…"><span class="toc-text">ing…</span></a></li></ol></li></ol>
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#准备工具"><span class="toc-text">准备工具</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#给ESXi6-7集成驱动"><span class="toc-text">给ESXi6.7集成驱动</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#集成官方支持的驱动"><span class="toc-text">集成官方支持的驱动</span></a></li></ol>
     
 <style>
     .left-col .switch-btn,
@@ -293,7 +307,38 @@
 </div>
     <div class="article-entry" itemprop="articleBody">
       
-        <h1 id="About"><a href="#About" class="headerlink" title="About"></a>About</h1><h2 id="ing…"><a href="#ing…" class="headerlink" title="ing…"></a>ing…</h2>
+        <h2 id="准备工具"><a href="#准备工具" class="headerlink" title="准备工具"></a>准备工具</h2><ol>
+<li>ESXi6.7的脱机捆绑包(VMware-ESXi-6.7.0-8169922-depot.zip)</li>
+<li>PowerCLI6.5</li>
+<li>第三方bundle驱动(由于6.7不支持vib的驱动集成)</li>
+<li>ESXi-Customizer-PS-v2.6.0</li>
+</ol>
+<h2 id="给ESXi6-7集成驱动"><a href="#给ESXi6-7集成驱动" class="headerlink" title="给ESXi6.7集成驱动"></a>给ESXi6.7集成驱动</h2><ul>
+<li><p>将ESXi6.7的脱机捆绑包和ESXi-Customizer-PS-v2.6.0放在一个根目录底下，在该目录新建两个个文件夹，分别叫做”driver”和”new”,并把第三方驱动包拖入”driver”中；</p>
+</li>
+<li><p>打开PowerCLI6.5如果出现”无法加载文件，因为在此系统上禁止运行脚本”的提示，那么输入：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Set-ExecutionPolicy RemoteSigned</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>cd到根目录底下输入命令：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">.\ESXi-Customizer-PS-v2.6.0.ps1 -v67 -vft -izip .\VMware-ESXi-6.7.0-8169922-depot.zip  -pkgDir .\driver\ -outDir .\new</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>如出现以下提示代表集成成功，在new文件夹中可以找到新生成的iso镜像包<br><img src="/img/ESXi/1.png" alt></p>
+</li>
+</ul>
+<h2 id="集成官方支持的驱动"><a href="#集成官方支持的驱动" class="headerlink" title="集成官方支持的驱动"></a>集成官方支持的驱动</h2><ul>
+<li><p>使用”-load”命令</p>
+</li>
+<li><p>例如集成部分官方支持网卡可以直接使用：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">-load net-e1000e,net55-r8168,net51-r8169,net-r8101</span><br></pre></td></tr></table></figure>
+
+<p>以上驱动型号用逗号隔开；</p>
+</li>
+<li><p>完整的命令如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">.\ESXi-Customizer-PS-v2.6.0.ps1 -v67 -vft -izip .\VMware-ESXi-6.7.0-8169922-depot.zip -load net-e1000e,net55-r8168,net51-r8169，net-r8101 -pkgDir .\driver\ -outDir .\new</span><br></pre></td></tr></table></figure>
+
+</li>
+</ul>
+
       
        <hr><span style="font-style: italic;color: gray;"> 转载请注明来源，欢迎对文章中的引用来源进行考证，欢迎指出任何有错误或不够清晰的表达。可以邮件至 936524003@qq.com </span>
     </div>
@@ -304,6 +349,14 @@
     <a href="javascript:void(0)" class="dashang" onclick="dashangToggle()">赏</a>
 </p>
 
+
+<div class="article_copyright">
+    <p><span class="copy-title">文章标题:</span>给原版ESXi6.7集成第三方驱动</p>
+    
+    <p><span class="copy-title">本文作者:</span><a href="javascript:void(0)" title="Bevis">Bevis</a></p>
+    <p><span class="copy-title">发布时间:</span>2019-11-18, 17:08:35</p>
+    <p><span class="copy-title">最后更新:</span>2019-11-18, 09:57:25</p>
+</div>
 
 
 
